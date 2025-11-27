@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Présences - Système Présence</title>
+    <link rel="stylesheet" href="../css/mobile-first.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- jQuery & Chart.js -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f4f7ff;
+            --card: #ffffff;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --accent: #60a5fa;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 8px 28px rgba(38,78,173,0.08);
+            --table-border: #e6eefc;
+            --text: #0f172a;
+            --glass: rgba(255,255,255,0.7);
+        }
+
+        .attendance-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .attendance-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .attendance-header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .attendance-header .subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .attendance-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .attendance-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--table-border);
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .controls .left, .controls .right { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+        }
+
+        input[type="search"], input[type="text"], input[type="email"], input[type="number"] {
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #dbeafe;
+            min-width: 200px;
+            outline: none;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .btn-attendance {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-attendance.primary { 
+            background: var(--primary); 
+            color: #fff; 
+        }
+        .btn-attendance.ghost { 
+            background: transparent; 
+            border: 1px solid #e6eefc; 
+            color: var(--text); 
+        }
+        .btn-attendance.warn { 
+            background: var(--warning); 
+            color: #fff; 
+        }
+        .btn-attendance.neutral { 
+            background: #f1f5f9; 
+            color: var(--text); 
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            font-size: 13px;
+            min-width: 980px;
+        }
+
+        .attendance-table thead th {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(180deg, #fbfdff, #f1f9ff);
+            color: var(--muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--table-border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .attendance-table tbody td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f8ff;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .attendance-table tbody tr.student-row:hover { 
+            background: #f8fbff; 
+            cursor: pointer; 
+        }
+
+        .small { 
+            font-size: 12px; 
+            color: var(--muted); 
+        }
+
+        .error { 
+            color: var(--danger); 
+            font-size: 12px; 
+            margin-top: 6px; 
+        }
+
+        .row-green { 
+            background: linear-gradient(90deg, #f0fdf4, #ffffff); 
+            transition: background .3s;
+        }
+        .row-yellow { 
+            background: linear-gradient(90deg, #fffbeb, #fff); 
+            transition: background .3s;
+        }
+        .row-red { 
+            background: linear-gradient(90deg, #fff1f2, #fff); 
+            transition: background .3s;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        label { 
+            font-size: 13px; 
+            color: var(--muted); 
+        }
+
+        .report-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-top: 20px;
+        }
+
+        .stat {
+            background: linear-gradient(180deg, #fff, #fbfdff);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--table-border);
+        }
+
+        .stat h4 { 
+            margin: 0; 
+            font-size: 14px; 
+            color: var(--muted); 
+        }
+
+        .stat .value { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: var(--text); 
+            margin-top: 6px; 
+        }
+
+        .controls-bottom { 
+            margin-top: 10px; 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .attendance-layout { 
+                grid-template-columns: 1fr; 
+            }
+            .attendance-table { 
+                min-width: 700px; 
+                overflow: auto; 
+                display: block; 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls .left, .controls .right {
+                justify-content: center;
+            }
+            input[type="search"] {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">Système de Présence</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
+                <li class="nav-item"><a href="attendance.html" class="nav-link active">Présences</a></li>
+                <li class="nav-item"><a href="add-student.html" class="nav-link">Ajouter Étudiant</a></li>
+                <li class="nav-item"><a href="reports.html" class="nav-link">Rapports</a></li>
+                <li class="nav-item"><a href="login.html" class="nav-link">Déconnexion</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container attendance-container">
+        <div class="attendance-header">
+            <div>
+                <h1>Gestion des Présences</h1>
+                <p class="subtitle">Université d'Alger - Programmation Web Avancée - 2025/2026</p>
+            </div>
+            <div class="small">Interface moderne · Gestion en temps réel</div>
+        </div>
+
+        <div class="attendance-layout">
+            <!-- Carte principale : Tableau + contrôles + rapport -->
+            <div class="attendance-card">
+                <div class="controls" style="justify-content: space-between; align-items: center">
+                    <div class="left">
+                        <input id="searchName" type="search" placeholder="Rechercher par nom..." />
+                        <button id="sortAbs" class="btn-attendance ghost">Trier par Absences (Croissant)</button>
+                        <button id="sortPar" class="btn-attendance ghost">Trier par Participation (Décroissant)</button>
+                        <span id="sortMode" class="small" style="margin-left: 8px">Tri actuel: aucun</span>
+                    </div>
+
+                    <div class="right">
+                        <button id="highlightExcellent" class="btn-attendance primary">Surligner Excellents</button>
+                        <button id="resetColors" class="btn-attendance neutral">Réinitialiser</button>
+                        <button id="showReport" class="btn-attendance warn">Afficher Rapport</button>
+                    </div>
+                </div>
+
+                <div style="overflow: auto;">
+                    <table id="attendanceTable" class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>Email</th>
+                                <th colspan="6">Sessions S1 à S6</th>
+                                <th colspan="6">Participations P1 à P6</th>
+                                <th>Abs.</th>
+                                <th>Part.</th>
+                                <th>Message</th>
+                            </tr>
+                            <tr>
+                                <th></th><th></th><th></th>
+                                <th>S1</th><th>S2</th><th>S3</th><th>S4</th><th>S5</th><th>S6</th>
+                                <th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th>
+                                <th></th><th></th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Étudiants exemple -->
+                            <tr class="student-row">
+                                <td class="last">Ahmed</td>
+                                <td class="first">Sara</td>
+                                <td class="email">sara.ahmed@univ.dz</td>
+
+                                <!-- sessions -->
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess"></td>
+                                <td><input type="checkbox" class="sess"></td>
+                                <td><input type="checkbox" class="sess"></td>
+                                <td><input type="checkbox" class="sess"></td>
+
+                                <!-- participations -->
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+
+                                <td class="absences">0</td>
+                                <td class="participations">0</td>
+                                <td class="msg">—</td>
+                            </tr>
+
+                            <tr class="student-row">
+                                <td class="last">Yacine</td>
+                                <td class="first">Ali</td>
+                                <td class="email">ali.yacine@univ.dz</td>
+
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess"></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+
+                                <td><input type="checkbox" class="par" checked></td>
+                                <td><input type="checkbox" class="par" checked></td>
+                                <td><input type="checkbox" class="par" checked></td>
+                                <td><input type="checkbox" class="par" checked></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+
+                                <td class="absences">0</td>
+                                <td class="participations">0</td>
+                                <td class="msg">—</td>
+                            </tr>
+
+                            <tr class="student-row">
+                                <td class="last">Houcine</td>
+                                <td class="first">Rania</td>
+                                <td class="email">rania.houcine@univ.dz</td>
+
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess"></td>
+                                <td><input type="checkbox" class="sess" checked></td>
+                                <td><input type="checkbox" class="sess"></td>
+                                <td><input type="checkbox" class="sess"></td>
+
+                                <td><input type="checkbox" class="par" checked></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+                                <td><input type="checkbox" class="par"></td>
+
+                                <td class="absences">0</td>
+                                <td class="participations">0</td>
+                                <td class="msg">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Feedback -->
+                <div class="controls-bottom">
+                    <div id="feedback" class="small" style="color: var(--muted)"></div>
+                </div>
+
+                <!-- Rapport rapide -->
+                <div style="margin-top: 20px">
+                    <h3 style="margin: 0 0 10px 0">Rapport Rapide</h3>
+                    <div class="report-grid">
+                        <div class="stat">
+                            <h4>Total Étudiants</h4>
+                            <div id="totalStudents" class="value">0</div>
+                        </div>
+                        <div class="stat">
+                            <h4>Présents (≥1 session)</h4>
+                            <div id="presentCount" class="value">0</div>
+                        </div>
+                        <div class="stat">
+                            <h4>Participations (≥1)</h4>
+                            <div id="participationCount" class="value">0</div>
+                        </div>
+                        <div class="stat">
+                            <h4>Répartition des Absences</h4>
+                            <div style="height: 160px; display: flex; align-items: center; justify-content: center">
+                                <canvas id="reportChart" width="320" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte latérale : Ajouter un étudiant -->
+            <div class="attendance-card">
+                <div>
+                    <h3 style="margin: 0 0 10px 0">Ajouter un Étudiant</h3>
+                    <form id="addStudentForm" novalidate>
+                        <div class="form-row">
+                            <label for="stuId">ID Étudiant</label>
+                            <input id="stuId" name="stuId" type="number" placeholder="ex: 101" />
+                            <div id="errId" class="error"></div>
+                        </div>
+                        <div class="form-row">
+                            <label for="lastName">Nom</label>
+                            <input id="lastName" name="lastName" type="text" placeholder="Nom de famille" />
+                            <div id="errLast" class="error"></div>
+                        </div>
+                        <div class="form-row">
+                            <label for="firstName">Prénom</label>
+                            <input id="firstName" name="firstName" type="text" placeholder="Prénom" />
+                            <div id="errFirst" class="error"></div>
+                        </div>
+                        <div class="form-row">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" placeholder="ex: prenom.nom@univ.dz" />
+                            <div id="errEmail" class="error"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px">
+                            <button class="btn-attendance primary" type="submit">Ajouter</button>
+                            <button id="clearForm" type="button" class="btn-attendance ghost">Effacer</button>
+                            <span id="addConfirm" class="small" style="color: var(--success); display: none">Étudiant ajouté ✓</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    // Le code JavaScript reste exactement le même que dans votre exemple
+    $(function(){
+        // ---------- Utilities ----------
+        function escapeHtml(str){
+            return String(str).replace(/[&<>"'`=\/]/g, function(s){
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[s];
+            });
+        }
+
+        // ---------- Update per row: absences, participations, color, message ----------
+        function updateRowStats($row){
+            const sessions = $row.find('input.sess');
+            const parts = $row.find('input.par');
+            const totalSessions = sessions.length || 6;
+
+            let presentCount = 0;
+            sessions.each(function(){ if($(this).is(':checked')) presentCount++; });
+
+            const abs = totalSessions - presentCount;
+            let parCount = 0;
+            parts.each(function(){ if($(this).is(':checked')) parCount++; });
+
+            $row.find('.absences').text(abs);
+            $row.find('.participations').text(parCount);
+
+            // color
+            $row.removeClass('row-green row-yellow row-red');
+            if(abs < 3) $row.addClass('row-green');
+            else if(abs >= 3 && abs <= 4) $row.addClass('row-yellow');
+            else if(abs >= 5) $row.addClass('row-red');
+
+            // message
+            let message = '—';
+            if(abs >= 5) message = "Exclu - Trop d'absences - Participez davantage";
+            else if(abs >= 3) message = "Attention - Présence faible - Participez plus";
+            else message = "Bon présence";
+            if(parCount >= 3 && abs < 3) message = "Bon présence - Excellente participation";
+            if(parCount < 2 && abs < 3) message = "Bon présence - Participe peu";
+            $row.find('.msg').text(message);
+        }
+
+        function recalcAll(){
+            $('#attendanceTable tbody tr.student-row').each(function(){ updateRowStats($(this)); });
+        }
+
+        // initial calc
+        recalcAll();
+
+        // ---------- checkbox changes (sessions or participation) ----------
+        $('#attendanceTable').on('change','input.sess, input.par', function(){
+            const $r = $(this).closest('tr.student-row');
+            updateRowStats($r);
+        });
+
+        // ---------- hover and click ----------
+        $('#attendanceTable').on('mouseenter','tbody tr.student-row', function(){ 
+            $(this).addClass('hover'); 
+            $(this).css('outline','2px solid rgba(37,99,235,0.06)'); 
+        }).on('mouseleave','tbody tr.student-row', function(){ 
+            $(this).removeClass('hover'); 
+            $(this).css('outline','none'); 
+        });
+
+        $('#attendanceTable').on('click','tbody tr.student-row', function(){
+            const fullName = $(this).find('.first').text() + ' ' + $(this).find('.last').text();
+            const abs = $(this).find('.absences').text();
+            alert("Étudiant: " + fullName + "\nAbsences: " + abs);
+        });
+
+        // ---------- Add Student ----------
+        function clearErrors(){ $('#errId,#errLast,#errFirst,#errEmail').text(''); }
+
+        function validateForm(){
+            let ok = true;
+            clearErrors();
+            const id = $('#stuId').val().trim();
+            const last = $('#lastName').val().trim();
+            const first = $('#firstName').val().trim();
+            const email = $('#email').val().trim();
+
+            if(id === '' || !/^[0-9]+$/.test(id)){ $('#errId').text('ID requis (chiffres uniquement).'); ok = false; }
+            if(last === '' || !/^[A-Za-zÀ-ÖØ-öø-ÿ\'\- ]+$/.test(last)){ $('#errLast').text('Nom requis (lettres).'); ok = false; }
+            if(first === '' || !/^[A-Za-zÀ-ÖØ-öø-ÿ\'\- ]+$/.test(first)){ $('#errFirst').text('Prénom requis (lettres).'); ok = false; }
+            if(email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $('#errEmail').text('Email invalide.'); ok = false; }
+
+            return ok;
+        }
+
+        $('#addStudentForm').on('submit', function(e){
+            e.preventDefault();
+            if(!validateForm()) return;
+
+            const last = escapeHtml($('#lastName').val().trim());
+            const first = escapeHtml($('#firstName').val().trim());
+            const email = escapeHtml($('#email').val().trim());
+
+            // build row with 6 sessions and 6 participations
+            const $row = $('<tr class="student-row"></tr>');
+            $row.append('<td class="last">'+last+'</td>');
+            $row.append('<td class="first">'+first+'</td>');
+            $row.append('<td class="email">'+email+'</td>');
+            for(let i=0;i<6;i++) $row.append('<td><input type="checkbox" class="sess"></td>');
+            for(let i=0;i<6;i++) $row.append('<td><input type="checkbox" class="par"></td>');
+            $row.append('<td class="absences">0</td>');
+            $row.append('<td class="participations">0</td>');
+            $row.append('<td class="msg">—</td>');
+
+            $('#attendanceTable tbody').append($row);
+            recalcAll();
+
+            $('#addConfirm').fadeIn(200).delay(1200).fadeOut(400);
+            $('#addStudentForm')[0].reset();
+
+            // optional scroll to new row
+            const $container = $('#attendanceTable').closest('div');
+            const top = $row.position().top + $container.scrollTop();
+            $container.animate({ scrollTop: top - 40 }, 300);
+        });
+
+        $('#clearForm').on('click', function(){ $('#addStudentForm')[0].reset(); clearErrors(); });
+
+        // ---------- Show Report ----------
+        let chartInstance = null;
+        $('#showReport').on('click', function(){
+            const $rows = $('#attendanceTable tbody tr.student-row');
+            const total = $rows.length;
+            let presentCount = 0, participationCount = 0;
+            const absBuckets = {'<3':0,'3-4':0,'>=5':0};
+
+            $rows.each(function(){
+                const abs = parseInt($(this).find('.absences').text()) || 0;
+                const par = parseInt($(this).find('.participations').text()) || 0;
+                if(abs < 3) absBuckets['<3']++; else if(abs <= 4) absBuckets['3-4']++; else absBuckets['>=5']++;
+                if(6 - abs > 0) presentCount++;
+                if(par > 0) participationCount++;
+            });
+
+            $('#totalStudents').text(total);
+            $('#presentCount').text(presentCount);
+            $('#participationCount').text(participationCount);
+
+            const ctx = document.getElementById('reportChart').getContext('2d');
+            const data = [absBuckets['<3'], absBuckets['3-4'], absBuckets['>=5']];
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Abs <3','Abs 3-4','Abs ≥5'],
+                    datasets: [{ 
+                        label: 'Étudiants', 
+                        data: data, 
+                        backgroundColor: [ 
+                            'rgba(34,197,94,0.7)',
+                            'rgba(245,158,11,0.7)',
+                            'rgba(239,68,68,0.7)'
+                        ] 
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // ---------- Highlight Excellent ----------
+        $('#highlightExcellent').on('click', function(){
+            $('#attendanceTable tbody tr.student-row').each(function(){
+                const abs = parseInt($(this).find('.absences').text()) || 0;
+                if(abs < 3){
+                    // animate: pulse effect
+                    $(this).animate({opacity:0.4},200).animate({opacity:1},200).animate({opacity:0.6},200).animate({opacity:1},200);
+                }
+            });
+        });
+
+        $('#resetColors').on('click', function(){
+            $('#attendanceTable tbody tr.student-row').removeClass('row-green row-yellow row-red').css('opacity',1);
+            recalcAll();
+        });
+
+        // ---------- Search by Name using .filter() ----------
+        $('#searchName').on('input', function(){
+            const q = $(this).val().toLowerCase();
+            $('#attendanceTable tbody tr.student-row').filter(function(){
+                const last = $(this).find('.last').text().toLowerCase();
+                const first = $(this).find('.first').text().toLowerCase();
+                return !(last.indexOf(q) !== -1 || first.indexOf(q) !== -1);
+            }).hide();
+            $('#attendanceTable tbody tr.student-row').filter(function(){
+                const last = $(this).find('.last').text().toLowerCase();
+                const first = $(this).find('.first').text().toLowerCase();
+                return (last.indexOf(q) !== -1 || first.indexOf(q) !== -1);
+            }).show();
+        });
+
+        // ---------- Sorting ----------
+        function sortTableRows(compareFn){
+            const $tbody = $('#attendanceTable tbody');
+            const rows = $tbody.find('tr.student-row').get();
+            rows.sort(compareFn);
+            $.each(rows, function(i,row){ $tbody.append(row); });
+        }
+
+        $('#sortAbs').on('click', function(){
+            sortTableRows(function(a,b){
+                const A = parseInt($(a).find('.absences').text())||0;
+                const B = parseInt($(b).find('.absences').text())||0;
+                return A - B; // ascending
+            });
+            $('#sortMode').text('Tri actuel: absences (croissant)');
+        });
+
+        $('#sortPar').on('click', function(){
+            sortTableRows(function(a,b){
+                const A = parseInt($(a).find('.participations').text())||0;
+                const B = parseInt($(b).find('.participations').text())||0;
+                return B - A; // descending
+            });
+            $('#sortMode').text('Tri actuel: participation (décroissant)');
+        });
+
+        // ---------- Recalc on window focus / init ----------
+        $(window).on('focus', recalcAll);
+        recalcAll();
+
+        // make sure report stays updated automatically when rows change
+        $('#attendanceTable').on('change','input.sess, input.par', function(){
+            recalcAll();
+        });
+    });
+    </script>
+</body>
+</html>

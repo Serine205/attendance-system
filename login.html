@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Système Présence</title>
+    <link rel="stylesheet" href="../css/mobile-first.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .create-account-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .create-account-section p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        .create-account-form {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .create-account-form h2 {
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .form-buttons button {
+            flex: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-buttons {
+                flex-direction: column;
+            }
+            
+            .create-account-form {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-form">
+            <h1>Connexion</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur:</label>
+                    <input type="text" id="username" name="username" required>
+                    <span class="error-message" id="username-error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe:</label>
+                    <input type="password" id="password" name="password" required>
+                    <span class="error-message" id="password-error"></span>
+                </div>
+                <button type="submit" class="btn-primary">Se connecter</button>
+            </form>
+            
+            <!-- Section pour créer un nouveau compte -->
+            <div class="create-account-section">
+                <p>Vous n'avez pas de compte ?</p>
+                <button type="button" id="createAccountBtn" class="btn-secondary">
+                    Créer un nouveau compte
+                </button>
+            </div>
+
+            <!-- Formulaire de création de compte (caché par défaut) -->
+            <div id="createAccountForm" class="create-account-form" style="display: none;">
+                <h2>Créer un nouveau compte</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="newUsername">Nom d'utilisateur:</label>
+                        <input type="text" id="newUsername" name="newUsername" required>
+                        <span class="error-message" id="newUsername-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Mot de passe:</label>
+                        <input type="password" id="newPassword" name="newPassword" required>
+                        <span class="error-message" id="newPassword-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmer le mot de passe:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        <span class="error-message" id="confirmPassword-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="newEmail">Email:</label>
+                        <input type="email" id="newEmail" name="newEmail" required>
+                        <span class="error-message" id="newEmail-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="fullName">Nom complet:</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                        <span class="error-message" id="fullName-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Rôle:</label>
+                        <select id="userRole" name="userRole" required>
+                            <option value="professor">Professeur</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-primary">Créer le compte</button>
+                        <button type="button" id="cancelCreateBtn" class="btn-secondary">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="../js/login.js"></script>
+</body>
+</html>
