@@ -1,29 +1,27 @@
 [
     {
-        "student_id": "101",
-        "last_name": "Ahmed",
+        "student_id": "2021001",
+        "last_name": "BENNACEUR",
         "first_name": "Sara",
-        "email": "sara.ahmed@univ.dz",
-        "course": "ISIL",
-        "group": "Groupe A",
-        "created_at": "2024-04-01 10:00:00"
+        "email": "sara@example.com"
     },
     {
-        "student_id": "102",
-        "last_name": "Yacine",
+        "student_id": "2021002",
+        "last_name": "BENGAOUA",
         "first_name": "Ali",
-        "email": "ali.yacine@univ.dz",
-        "course": "ISIL",
-        "group": "Groupe A",
-        "created_at": "2024-04-01 10:05:00"
+        "email": "ali@example.com"
     },
     {
-        "student_id": "103",
-        "last_name": "Houcine",
+        "student_id": "2021003",
+        "last_name": "BENNADJI",
         "first_name": "Rania",
-        "email": "rania.houcine@univ.dz",
-        "course": "ISIL",
-        "group": "Groupe A",
-        "created_at": "2024-04-01 10:10:00"
+        "email": "rania@example.com"
+    },
+    {
+        "student_id": "2345678",
+        "last_name": "SAHLI",
+        "first_name": "ALAA",
+        "email": "alaa@gmail.com"
     }
+   
 ]
