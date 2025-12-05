@@ -1,0 +1,5 @@
+[
+  {"student_id":"2021001","status":"present","participated":true},
+  {"student_id":"2021002","status":"absent","participated":false},
+  {"student_id":"2021003","status":"present","participated":true}
+]
