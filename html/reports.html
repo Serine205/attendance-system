@@ -1,49 +1,134 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapports - Système Présence</title>
-    <link rel="stylesheet" href="../css/mobile-first.css">
-    <link rel="stylesheet" href="../css/style.css">
+  <meta charset="utf-8">
+  <title>Rapports — Attendance System</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="../css/mobile-first.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">Présence Étudiants</div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
-                <li class="nav-item"><a href="attendance.html" class="nav-link">Liste Présence</a></li>
-                <li class="nav-item"><a href="add-student.html" class="nav-link">Ajouter Étudiant</a></li>
-                <li class="nav-item"><a href="reports.html" class="nav-link active">Rapports</a></li>
-                <li class="nav-item"><a href="login.html" class="nav-link">Déconnexion</a></li>
-            </ul>
-            <div class="nav-toggle">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
-        </div>
-    </nav>
+  <div class="container">
 
-    <main class="container">
-        <h1>Rapports et Statistiques</h1>
-        <div class="reports-controls">
-            <select id="reportType">
-                <option value="daily">Rapport Quotidien</option>
-                <option value="weekly">Rapport Hebdomadaire</option>
-                <option value="monthly">Rapport Mensuel</option>
-                <option value="student">Par Étudiant</option>
-            </select>
-            <input type="date" id="reportDate">
-            <button id="generateReport" class="btn-primary">Générer Rapport</button>
+    <header class="header card">
+      <div class="brand">
+        <div class="logo">AS</div>
+        <div>
+          <div class="site-title">Rapports</div>
+          <div class="small">Historique des présences</div>
         </div>
-        
-        <div id="reportResults" class="report-results">
-            <!-- Les résultats du rapport seront affichés ici -->
-        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Accueil</a>
+        <a href="attendance.html">Prise présence</a>
+        <a href="add-student.html">Ajouter étudiant</a>
+      </nav>
+    </header>
+
+    <!-- MAIN -->
+    <main class="card" style="margin-top:12px">
+      <h3>Historique / Rapports</h3>
+
+      <div id="reportsList" style="display:flex;flex-direction:column;gap:10px"></div>
+
+      <div id="reportPreview" class="card" style="margin-top:12px;display:none;">
+        <h4 id="previewTitle">Aperçu</h4>
+        <div id="previewSummary" class="row"></div>
+        <canvas id="previewChart" style="max-width:600px"></canvas>
+      </div>
     </main>
+  </div>
 
-    <script src="../js/reports.js"></script>
+<script>
+$(function(){
+
+  // ------------------ LIST FILES ------------------
+  async function loadList(){
+    const res = await fetch("../php/attendance/read_attendance_data.php?list=true");
+    const j = await res.json();
+
+    const $list = $("#reportsList").empty();
+
+    if(!j.success || !j.files.length){
+      $list.html("<div class='small'>Aucun rapport disponible.</div>");
+      return;
+    }
+
+    j.files.sort().reverse().forEach(f => {
+      $list.append(`
+        <div class="card row" style="justify-content:space-between;align-items:center">
+          <div>
+            <strong>${f}</strong>
+            <div class="small">Cliquez pour ouvrir</div>
+          </div>
+          <div>
+            <button class="button openBtn" data-file="${f}">Ouvrir</button>
+            <button class="button" style="background:#ef4444;margin-left:8px"
+                    onclick="deleteReport('${f}')">Supprimer</button>
+          </div>
+        </div>
+      `);
+    });
+  }
+
+  // ------------------ DELETE FILE ------------------
+  window.deleteReport = async function(file){
+    if(!confirm("Supprimer " + file + " ?")) return;
+
+    await fetch("../php/attendance/delete_attendance.php?file="+encodeURIComponent(file));
+    loadList();
+  };
+
+  // ------------------ OPEN FILE ------------------
+  let chartPreview = null;
+
+  $("#reportsList").on("click", ".openBtn", async function(){
+    const file = $(this).data("file");
+
+    const res = await fetch("../php/attendance/read_attendance_data.php?file="+file);
+    const j = await res.json();
+    if(!j.success) return alert("Erreur: "+j.message);
+
+    const att = j.attendance;
+    const total = att.length;
+    const present = att.filter(a=>a.status==="present").length;
+    const participated = att.filter(a=>a.participated).length;
+
+    $("#reportPreview").show();
+    $("#previewTitle").text("Aperçu — " + file);
+
+    $("#previewSummary").html(`
+      <div class="kpi card"><div class="small">Total</div><div class="big">${total}</div></div>
+      <div class="kpi card"><div class="small">Présents</div><div class="big">${present}</div></div>
+      <div class="kpi card"><div class="small">Participations</div><div class="big">${participated}</div></div>
+    `);
+
+    const ctx = document.getElementById("previewChart");
+
+    if(chartPreview) chartPreview.destroy();
+
+    chartPreview = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Présents", "Absents", "Participations"],
+        datasets: [{
+          data: [present, total-present, participated],
+          backgroundColor: ["#16a34a", "#ef4444", "#0ea5a4"]
+        }]
+      },
+      options:{
+        plugins:{ legend:{ display:false }},
+        responsive:true
+      }
+    });
+  });
+
+  loadList();
+});
+</script>
 </body>
 </html>
