@@ -1,50 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Système de Présence - Accueil</title>
-    <link rel="stylesheet" href="../css/mobile-first.css">
-    <link rel="stylesheet" href="../css/style.css">
+  <meta charset="utf-8">
+  <title>Attendance System — Accueil</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="../css/mobile-first.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">Présence Étudiants</div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
-                <li class="nav-item"><a href="attendance.html" class="nav-link">Liste Présence</a></li>
-                <li class="nav-item"><a href="add-student.html" class="nav-link">Ajouter Étudiant</a></li>
-                <li class="nav-item"><a href="reports.html" class="nav-link">Rapports</a></li>
-                <li class="nav-item"><a href="login.html" class="nav-link">Déconnexion</a></li>
-            </ul>
-            <div class="nav-toggle">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
+  <div class="container">
+    <header class="header card">
+      <div class="brand">
+        <div class="logo">AS</div>
+        <div>
+          <div class="site-title">Attendance System</div>
+          <div class="small">Gestion des présences — Université</div>
         </div>
-    </nav>
+      </div>
 
-    <main class="container">
-        <h1>Bienvenue dans le Système de Gestion de Présence</h1>
-        <div class="dashboard">
-            <div class="stat-card">
-                <h3>Étudiants Total</h3>
-                <p id="total-students">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Présences Aujourd'hui</h3>
-                <p id="today-attendance">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Sessions Actives</h3>
-                <p id="active-sessions">0</p>
-            </div>
+      <nav class="nav">
+        <button class="nav-toggle btn-ghost" aria-expanded="false">☰</button>
+        <div class="nav-links">
+          <a href="index.html" class="active">Accueil</a>
+          <a href="attendance.html">Prise de présence</a>
+          <a href="add-student.html">Ajouter étudiant</a>
+          <a href="reports.html">Rapports</a>
+          <a href="login.html">Login</a>
         </div>
+      </nav>
+    </header>
+
+    <main class="grid-2">
+      <section class="card left-panel">
+        <h2>Bienvenue</h2>
+        <p class="text-muted">Système de gestion des présences — mobile-first, simple et extensible.</p>
+
+        <div class="row" style="margin-top:12px">
+          <div class="col card kpi">
+            <div>
+              <div class="small">Étudiants</div>
+              <div style="font-weight:800;font-size:22px" id="kpi-students">—</div>
+            </div>
+            <div class="badge small">List</div>
+          </div>
+          <div class="col card kpi">
+            <div>
+              <div class="small">Sessions ouvertes</div>
+              <div style="font-weight:800;font-size:22px" id="kpi-sessions">—</div>
+            </div>
+            <div class="badge small">Today</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <button class="button" onclick="location.href='attendance.html'">Prendre la présence</button>
+          <button class="button" style="background:#0ea5a4;margin-left:8px" onclick="location.href='add-student.html'">Ajouter un étudiant</button>
+          <button class="button" style="background:#3b82f6;margin-left:8px" onclick="location.href='reports.html'">Voir rapports</button>
+        </div>
+      </section>
+
+      <aside class="card right-panel">
+        <h3>Raccourcis</h3>
+        <ul>
+          <li class="small"><a href="attendance.html">Prise de présence</a></li>
+          <li class="small"><a href="add-student.html">Formulaire Ajouter</a></li>
+          <li class="small"><a href="reports.html">Voir Rapports</a></li>
+        </ul>
+        <div class="footer">© 2025 University Project</div>
+      </aside>
     </main>
+  </div>
 
-    <script src="../js/main.js"></script>
-    <script src="../js/home.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    // show quick KPIs from data/students.json and sessions.json
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      try {
+        const resp = await fetch('../data/students.json');
+        const students = await resp.json();
+        document.getElementById('kpi-students').textContent = students.length;
+      } catch(e){
+        document.getElementById('kpi-students').textContent = '0';
+      }
+      try {
+        const resp2 = await fetch('../data/sessions.json');
+        const sessions = await resp2.json();
+        document.getElementById('kpi-sessions').textContent = sessions.filter(s=>s.status==='open').length;
+      } catch(e){
+        document.getElementById('kpi-sessions').textContent = '0';
+      }
+
+      // nav toggle
+      const toggle = document.querySelector('.nav-toggle');
+      if(toggle){
+        toggle.addEventListener('click', ()=>{
+          const links = document.querySelector('.nav-links');
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', !expanded);
+          links.style.display = expanded ? 'none' : 'flex';
+        });
+      }
+    });
+  </script>
 </body>
 </html>
